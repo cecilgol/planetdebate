@@ -1,0 +1,16 @@
+# root directory
+/*
+/*/
+!/.gitignore
+
+# wp-content/
+/wp-content/*
+!/wp-content/
+
+# themes
+/wp-content/themes/*
+!/wp-content/themes/planetdebate
+
+#plugins
+/wp-content/plugins/*
+!/wp-content/plugins/planetdebate
