@@ -1,0 +1,52 @@
+@media (min-width:936px){
+	#primary-navbar{
+		max-width:1170px;
+	}
+}
+
+.banner{
+	border:0;
+	background-color:$brand-primary;
+	margin-bottom:0px;
+}
+
+#primary-navbar ul>li>a, #navbar-brand-text{
+	color: #fff;
+}
+
+#navbar-brand-text{
+	text-transform: uppercase;
+}
+
+#primary-navbar li:hover{
+	background-color: darken($brand-primary,5%);
+}
+
+#primary-navbar i.fa{
+	color: darken($brand-primary,13) !important;
+}
+
+
+//SEARCHBAR STYLES
+
+.searchbar{
+	background-color: #0a0c0e;
+	padding:0 10px
+}
+
+#searchform{
+	color:#444444;
+	font-family:'FontAwesome','Oswald';
+	margin:auto;
+	width:1170px;
+
+	input#s{
+		background-color:black;
+		border-color:black;
+		color:#444444;
+		&:focus{
+			color:white;
+			font-family:'Arial'
+		}
+	}
+}

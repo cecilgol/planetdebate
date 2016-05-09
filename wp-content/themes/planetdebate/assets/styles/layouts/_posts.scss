@@ -1,0 +1,74 @@
+.product-card{
+	border:1px solid lighten($brand-grey,20);
+	margin-bottom:22px;
+	min-height:100px;
+}
+.product-card-top{
+	padding:0 22px;
+}
+.product-title{
+	font-size:22px;
+}
+.product-date{
+	font-size:10px;
+}
+.product-utilities{
+	font-size:20px;
+	padding-top:12px;
+
+	* {
+		padding-right:10px;
+	}
+	*:last-child {
+		padding-right:0px;
+	}
+}
+.i-heart-this{
+	&:before{
+		content: "\f004";
+		font-family: FontAwesome;
+	}
+}
+.add-to-cart{
+	&:before{
+		content: "\f07a ";
+		font-family: FontAwesome;
+	}
+}
+.price{}
+.product-card-bottom{
+	border-top:1px solid lighten($brand-grey,20);
+	padding:3px 22px;
+	min-height:40px;
+}
+.metadata{
+	& *{
+		padding-right:1em;
+	}
+	padding:7px 0;
+}//means pages,hearts,downloads
+.pages{
+	&:before{
+		content: "\f0f6 ";
+		font-family: FontAwesome;
+	}
+}
+.hearts{
+	&:before{
+		color:$brand-primary;
+		content: "\f004 ";
+		font-family: FontAwesome;
+	}
+}
+.downloads{
+	&:before{
+		content: "\f0c7 ";
+		font-family: FontAwesome;
+	}
+}
+.categories{
+	padding-top:6px;
+}
+.category{
+	margin-right:4px;
+}
