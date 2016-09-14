@@ -77,6 +77,11 @@ class Planet_Debate_Admin {
 
 	}
 
+	public function add_pd_subscription_product( $types ){
+		$types[ 'pd_subscription' ] = __( 'Planet Debate Subscription' );
+		return $types;
+	}
+
 	/**
 	 * Register the JavaScript for the admin area.
 	 *

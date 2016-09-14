@@ -50,3 +50,18 @@
 		}
 	}
 }
+
+.new-blog-post-count{
+    -moz-border-radius: 30px;
+	border-radius:50%;
+
+	background-color:#fff;
+	behavior:url(PIE.htc);
+	color: $brand-primary;
+	display:block;
+	float:right;
+	font-size: 1em;
+	margin-left: 3px;
+	text-align:center;
+	width:18px;height:18px;
+}

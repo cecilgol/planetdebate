@@ -18,10 +18,10 @@
 <?php get_template_part('templates/category-boxes'); ?>
 
     <div class="wrap container" role="document">
-      <div class="content row">
+      <div class="content">
         <main class="main">
 				<?php
-					$args = array( 'post_type' => 'product', 'stock' => 1, 'posts_per_page' => 10, 'orderby' =>'date','order' => 'DESC' );
+					$args = array( 'post_type' => 'product', 'stock' => 1, 'posts_per_page' => 10, 'orderby' =>'menu_order','order' => 'ASC' );
 					$loop = new WP_Query( $args );
 					while ( $loop->have_posts() ){ $loop->the_post(); global $product; woocommerce_get_template_part( 'content', 'product'); }
 /*

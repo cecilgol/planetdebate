@@ -26,7 +26,6 @@
             $(this).attr('placeholder',initialValue);
           });
         });
-
       },
       finalize: function() {
         // JavaScript to be fired on all pages, after page specific JS is fired
@@ -97,6 +96,17 @@
             error: function(XMLHttpRequest, textStatus, errorThrown) {
             }
           });
+        });
+        $('button.description-sh-btn').click(function(){
+          var tic = $(this);
+          $('.product-description#' + $(this).prop('id') + '-description').slideToggle(function(){
+            if($(this).is(':visible')){
+              tic.text("-");
+            }else{
+              tic.text("+");
+            }
+          });
+
         });
 
 

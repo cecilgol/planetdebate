@@ -12,6 +12,8 @@
     <nav class="collapse navbar-collapse" role="navigation">
         <ul class="nav navbar-nav">
           <li><a href="/contact-us" data-toggle='modal'><i class="fa fa-envelope"></i> Contact Us</a></li>
+          <li><a href="/news"><i class="fa fa-info-circle "></i> PD News <span class="new-blog-post-count"><?php echo wp_count_posts('post')->publish; ?></span></a> </li>
+
         </ul>
         <ul class="nav navbar-nav navbar-right">
       <?php if (is_user_logged_in()){ ?>

@@ -19,6 +19,8 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit; // Exit if accessed directly
 }
 global $product, $woocommerce_loop, $user_favorite_files;
+
+$file_heart_class = "";
 if (is_array($user_favorite_files)){
 	$file_heart_class = (in_array($product->id, $user_favorite_files) ? "favorite" : "");
 }
@@ -53,14 +55,18 @@ if ( 0 === $woocommerce_loop['loop'] % $woocommerce_loop['columns'] ) {
 	<div class="product-card" id="<?php echo $product->id ?>">
 		<div class="product-card-top">
 			<div class="product-title pull-left">
-
 				<h3 class="brand-primary oswald"><?php the_title(); ?></h3>
-				<div class="product-date"><?php the_time('F j, Y') ?></div>
+				<div class="product-date"><?php the_time('F j, Y') ?>
+					<button id="<?php echo $product->id ?>" class="description-sh-btn btn btn-default btn-xs" style="border:none;">+</button>
+				</div>
 			</div>
 			<div class="product-utilities pull-right">
 				<span class="i-heart-this <?php echo $file_heart_class ?>"></span>
 				<?php woocommerce_template_loop_add_to_cart( $product );?><span> </span>
 				<span class="price oswald"><?php echo $product->get_price_html(); ?></span>
+			</div>
+			<div id="<?php echo $product->id ?>-description" class="product-description col-xs-10" style="display:none;">
+				<small><?php the_content() ?></small>
 			</div>
 			<div class="clearfix"></div>
 		</div>

@@ -1,5 +1,20 @@
 <?php
 /**
+ * Loggin!
+ */
+if (!function_exists('write_log')) {
+    function write_log ( $log )  {
+        if ( true === WP_DEBUG ) {
+            if ( is_array( $log ) || is_object( $log ) ) {
+                error_log( print_r( $log, true ) );
+            } else {
+                error_log( $log );
+            }
+        }
+    }
+}
+
+/**
  * Sage includes
  *
  * The $sage_includes array determines the code library included in your theme.
@@ -253,15 +268,16 @@ function PD_before_shop_loop_item(){
         }
 
 
-<?php MOVE THIS LINE UP LATER  */ }
+<?php MOVE THIS LINE UP LATER  
+*/ }
 
 // THIS IS ALL SUBSCRIBER JUNK
 if ( get_user_meta( wp_get_current_user()->ID )['subscriptions'][0] == 'everything'){
   add_filter('woocommerce_loop_add_to_cart_link','pd_subscriber_add_to_cart',1,1);
   add_action('wp_ajax_pd_subscriber_download', 'pd_subscriber_ajax_callback' );
   add_action( 'woocommerce_email', 'unhook_those_pesky_emails' );
-
 }
+
 
 
 function pd_subscriber_add_to_cart(){
@@ -275,6 +291,55 @@ function pd_subscriber_add_to_cart(){
       echo '<a class="btn btn-default subscriber-download-button" id="'.$key.'" data-product-id="'.$product->id.'" data-link="'.$each_download["file"].'"><i class="fa fa-download" aria-hidden="true"></i></a>';
     }
 }
+
+add_action('admin_footer','pd_subscriber_user_management_script');
+
+function pd_subscriber_user_management_script(){
+  ?>
+  <script>
+  console.log("booyah!");
+  jQuery(document).ready(function($){
+    var userid = jQuery('#make-subscriber').data('userid');
+
+    var data = {
+      'action': 'pd_admin_toggle_subscriber',
+      'uid': userid
+      };
+    jQuery("#make-subscriber").click(function(err){
+
+    jQuery.post(
+      ajaxurl,
+      data,
+      function(response){
+        alert('got' + response + 'from server!');
+      });
+
+    });
+  });
+  </script>
+  <?php
+}
+
+add_action('wp_ajax_pd_admin_toggle_subscriber','pd_admin_toggle_subscriber');
+
+
+
+function pd_admin_toggle_subscriber(){
+  global $wpdb;
+  $user_id = $_POST['uid'];
+  $action;
+
+  if(isset(get_user_meta( $user_id  )['subscriptions'][0])){
+    delete_user_meta($user_id,"subscriptions","everything");
+    $action = 'deleted';
+  } else {
+    add_user_meta($user_id,"subscriptions","everything");
+    $action = 'added';
+  }
+  echo "$action subscription for $user_id";
+  wp_die();
+}
+
 
 function pd_subscriber_ajax_callback(){
   $download_id = $_POST['dlid'];
@@ -300,6 +365,7 @@ function pd_subscriber_ajax_callback(){
   echo "Download file from Your Account";
   die();
 }
+
 
 
 function unhook_those_pesky_emails( $email_class ) {
@@ -466,4 +532,208 @@ function pd_contact_us_submit(){
   die();
 }
 
+//add_filter( 'product_type_selector', 'add_pd_subscription_product' );
+//add_action('init', 'register_pd_sbscription_product');
+
+function register_planet_debate_subscription_product_type(){
+
+  /**
+   * Planet Debate Subscription
+   *
+   * The subscription product type
+   *
+   * @class     WC_Product_Pd_Subscription
+   * @version   1.0.0
+   * @package   WooCommerce/Classes/Products
+   * @category  Class
+   * @author    stroud
+   */
+  class WC_Product_Pd_Subscription extends WC_Product {
+
+    /**
+     * Initialize Pd_Subscription Product.
+     *
+     * @param mixed $product
+     */
+    public function __construct( $product ) {
+      $this->product_type = 'pd_subscription';
+      $this->supports[]   = 'ajax_add_to_cart';
+      parent::__construct( $product );
+
+      add_filter('product_type_options', function($product_options) {
+          /**
+           * The available product type options array keys are:
+           *
+           * virtual
+           * downloadable
+           */
+          set($product_options['virtual']); //as an example...
+          return $product_options;
+      }, 10, 1);
+    }
+
+    /**
+     * Get the add to url used mainly in loops.
+     *
+     * @return string
+     */
+    public function add_to_cart_url() {
+      $url = $this->is_purchasable() && $this->is_in_stock() ? remove_query_arg( 'added-to-cart', add_query_arg( 'add-to-cart', $this->id ) ) : get_permalink( $this->id );
+
+      return apply_filters( 'woocommerce_product_add_to_cart_url', $url, $this );
+    }
+
+    /**
+     * Get the add to cart button text.
+     *
+     * @return string
+     */
+    public function add_to_cart_text() {
+      $text = $this->is_purchasable() && $this->is_in_stock() ? __( 'Add to cart', 'woocommerce' ) : __( 'Read More', 'woocommerce' );
+
+      return apply_filters( 'woocommerce_product_add_to_cart_text', $text, $this );
+    }
+
+    /**
+     * Get the title of the post.
+     *
+     * @return string
+     */
+    public function get_title() {
+
+      $title = $this->post->post_title;
+
+      if ( $this->get_parent() > 0 ) {
+        $title = get_the_title( $this->get_parent() ) . ' &rarr; ' . $title;
+      }
+
+      return apply_filters( 'woocommerce_product_title', $title, $this );
+    }
+
+    /**
+     * Sync grouped products with the children lowest price (so they can be sorted by price accurately).
+     */
+    public function grouped_product_sync() {
+      if ( ! $this->get_parent() ) return;
+
+      $children_by_price = get_posts( array(
+        'post_parent'    => $this->get_parent(),
+        'orderby'        => 'meta_value_num',
+        'order'          => 'asc',
+        'meta_key'       => '_price',
+        'posts_per_page' => 1,
+        'post_type'      => 'product',
+        'fields'         => 'ids'
+      ));
+      if ( $children_by_price ) {
+        foreach ( $children_by_price as $child ) {
+          $child_price = get_post_meta( $child, '_price', true );
+          update_post_meta( $this->get_parent(), '_price', $child_price );
+        }
+      }
+
+      delete_transient( 'wc_products_onsale' );
+
+      do_action( 'woocommerce_grouped_product_sync', $this->id, $children_by_price );
+    }
+
+
+  }
+}
+function add_pd_subscription_product( $types ){
+  // Key should be exactly the same as in the class product_type parameter
+  $types[ 'pd_subscription' ] = __( 'Planet Debate Subscription' );
+  return $types;
+
+}
+/**
+ * Add a custom product tab.
+ */
+function pd_subscription_product_tabs( $tabs) {
+  $tabs['rental'] = array(
+    'label'   => __( 'Subscription', 'woocommerce' ),
+    'target'  => 'pd_subscription_optins',
+    'class'   => array( 'show_if_pd_subscription', 'show_if_pd_subscription'  ),
+  );
+  return $tabs;
+}
+/**
+ * Contents of the rental options product tab.
+ */
+function pd_subscription_product_tabs_content() {
+  global $post;
+  ?><div id='pd_subscription_optins' class='panel woocommerce_options_panel'><?php
+    ?><div class='options_group'><?php
+      woocommerce_wp_checkbox( array(
+        'id'    => '_virtual',
+        'label'   => __( 'This must be checked', 'woocommerce' ),
+      ) );
+    ?></div>
+
+  </div><?php
+}
+/**
+ * Save the custom fields.
+ */
+function save_pd_subscription_product_field( $post_id ) {
+  $pd_subscription_option = isset( $_POST['_virtual'] ) ? 'yes' : 'no';
+  update_post_meta( $post_id, '_virtual', $pd_subscription_option );
+}
+
+/**
+ * Hide Attributes data panel.
+ */
+function hide_attributes_data_panel( $tabs) {
+  // Other default values for 'attribute' are; general, inventory, shipping, linked_product, variations, advanced
+  $tabs['inventory']['class'][] = 'hide_if_pd_subscription hide_if_pd_subscription';
+  return $tabs;
+}
+
+function pd_subscription_custom_js() {
+
+  if ( 'product' != get_post_type() ) :
+    return;
+  endif;
+
+  ?><script type='text/javascript'>
+    jQuery( document ).ready( function() {
+      jQuery( '.options_group.pricing' ).addClass( 'show_if_pd_subscription' ).show();
+      jQuery( 'label[for=_virtual]' ).addClass( 'show_if_pd_subscription' ).show();
+    });
+  </script><?php
+}
+
+function user_bought_pd_subscription($order_id){
+  global $product;
+  //if $order contains master subscription then set user_meta 'subscription' to 'everything'
+  $order = new WC_Order($order_id);
+
+  if ( $order->get_items() > 0 ){
+    foreach ($order->get_items() as $item) {
+      $item_obj = $order->get_product_from_item( $item );
+      write_log($item_obj);
+      if ($item_obj->product_type == "pd_subscription"){
+        write_log($order->user_id);
+        update_user_meta($order->user_id,'subscriptions','everything');
+      }
+    }
+  }
+
+
+}
+add_action( 'init', 'register_planet_debate_subscription_product_type' );
+add_filter( 'product_type_selector', 'add_pd_subscription_product' );
+add_action( 'admin_footer', 'pd_subscription_custom_js' );
+add_action( 'woocommerce_order_status_processing','user_bought_pd_subscription' );
+add_filter( 'woocommerce_product_data_tabs', 'hide_attributes_data_panel' );
+add_filter( 'woocommerce_product_data_tabs', 'pd_subscription_product_tabs' );
+add_action( 'woocommerce_product_data_panels', 'pd_subscription_product_tabs_content' );
+add_action( 'woocommerce_process_product_meta_simple_rental', 'save_pd_subscription_product_field'  );
+
+
+/*
+ * On dealing with the ajax return from add_to_cart
+ */
+
+// THIS WILL BE IMPLEMENTED IN V 2.0
 
